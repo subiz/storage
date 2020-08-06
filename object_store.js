@@ -1,0 +1,104 @@
+const flow = require('@subiz/flow')
+const config = require('@sb/config')
+import KV from './kv.js'
+
+// parent {api, realtime, insync, pubsub}
+// like kv store, but support match and pubsub
+function NewObjectStore (realtime, pubsub, name, matcher, topics) {
+	let kv = new KV(config.db_prefix + name)
+	kv.init()
+
+	// expires time in ms
+	// must re-fetch data if expires
+	let expires = {}
+
+	let isExpired = key => (expires[key] || 0) < Date.now()
+
+	var me = {}
+	me.put = async (key, value) => {
+		let ret = kv.put(key, value)
+		if (!Array.isArray(ret)) ret = [ret]
+		let itemM = {}
+		lo.map(ret, item => {
+			if (item && item.id) itemM[item.id] = item
+		})
+		if (lo.size(itemM) === 0) return
+		pubsub.publish(name, itemM)
+	}
+
+	me.has = key => {
+		if (!key) return false
+		return !!kv.match(key)
+	}
+
+	me.match = key => {
+		if (!key) return {}
+		if (isExpired(key)) fetchQueue.push(key)
+
+		let out = kv.match(key)
+		return out
+	}
+
+	me.del = key => kv.del(key)
+
+	me.fetch = async (keys, force) => {
+		if (!keys) return {}
+		if (typeof keys === 'string') keys = [keys]
+		if (!Array.isArray(keys)) throw new Error('keys must be array')
+		let unsyncids = lo.filter(keys, k => !!k)
+		if (!force) unsyncids = unsyncids.filter(k => isExpired(k))
+
+		await Promise.all(unsyncids.map(id => fetchQueue.push(id)))
+		return lo.map(keys, k => kv.match(k))
+	}
+
+	let fetchQueue = new flow.batch(100, 500, async ids => {
+		let { error: suberr } = await realtime.subscribe(topics)
+
+		ids = lo.uniq(ids)
+		// filter items that must be fetched
+		ids = ids.filter((id, i) => {
+			if (!id) return false
+			// if (!isExpired(id)) return false
+			return true
+		})
+
+		let items = ids.map(id => {
+			let item = kv.match(id) || {}
+			item.id = id
+			return item
+		})
+
+		if (items.length === 0) return []
+
+		ids.map(id => {
+			expires[id] = Date.now() + 30000 // should retry in 30 sec
+		})
+		let { data: newitems, error } = await matcher(items)
+		if (error) {
+			console.log('ERR', error)
+			return []
+		}
+
+		newitems = newitems || {}
+		let itemM = {}
+		ids.map((id, i) => {
+			let newitem = newitems[i] || {}
+			if (newitem.id) itemM[id] = newitem // server does return new data
+		})
+
+		// add 1 more expire days if subscribe success
+		if (!suberr) {
+			ids.map(id => {
+				expires[id] = Date.now() + 120000 // 2 mins
+			})
+		}
+
+		kv.put(lo.map(itemM))
+		pubsub.publish(name, itemM)
+	})
+
+	return me
+}
+
+export default NewObjectStore
