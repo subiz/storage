@@ -1,14 +1,15 @@
 let KvMaxSize = 500
 // A key-value database with a cache layer
-export default class {
-	constructor (DB, schema) {
+module.exports = class {
+	constructor (db, schema) {
 		this.name = schema
 		schema += '_kv'
 		this.dead = false
-		this.db = new DB(schema)
+		this.db = db
 		this.cache = {}
 
 		this.initialized = false
+		this.init()
 	}
 
 	refreshCache () {
@@ -97,5 +98,6 @@ export default class {
 		this.dead = true
 		this.db = undefined
 		this.cache = undefined
+		this.initialized = false
 	}
 }

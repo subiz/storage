@@ -3,7 +3,7 @@ let requestIdleCallback = window.requestIdleCallback || (cb => cb())
 
 const LIMIT = 80
 
-export default class {
+module.exports = class {
 	constructor (schema, inmem) {
 		this.localStorage = memlocalStorage
 		this.allkeys = {}
