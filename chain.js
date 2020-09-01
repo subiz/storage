@@ -15,7 +15,6 @@ class Chain {
 	}
 
 	init () {
-		console.time('CHAIN' + this.schema)
 		let inmemItemM = {}
 
 		let allitems = this.db.all('items')
@@ -43,7 +42,6 @@ class Chain {
 		})
 
 		this.cache = inmemItemM
-		console.timeEnd('CHAIN' + this.schema)
 	}
 
 	destroy () {
@@ -90,7 +88,6 @@ class Chain {
 		if (!api) return { error: 'no api' }
 
 		let anchor = this.anchorCache[chain] || ''
-
 		var [apiItems, newanchor, error] = await api(chain, anchor, limit)
 
 		if (error) return { error }
@@ -100,7 +97,7 @@ class Chain {
 
 		if (apiItems.length === 0) return { end: true }
 
-		apiItems.each(item => {
+		apiItems.forEach(item => {
 			item.chain = chain
 			item.full_id = chain + ':' + item.id
 			inmemItemM[item.id] = item
@@ -145,7 +142,7 @@ class Chain {
 			if (newItems.length === 0 || newanchor === lastanchor) break // out of item
 
 			// still cannot join
-			if (fetchedItems.length() >= 200) {
+			if (fetchedItems.length >= 200) {
 				// fetch too much but still cannot merge with old data
 				// clear old data and write new data
 
@@ -160,8 +157,9 @@ class Chain {
 				break
 			}
 
+			let minindexitem = minIndex(fetchedItems) || {}
 			// try to join old data
-			if (lo.get(minIndex(fetchedItems), 'index') <= topindex) {
+			if (minindexitem.index <= topindex) {
 				// successfully joined, reuse anchor
 
 				lastanchor = this.anchorCache[chain] || newanchor
@@ -170,11 +168,12 @@ class Chain {
 			lastanchor = newanchor
 		}
 
-		fetchedItems.map(item => {
+		for (var i = 0; i < Object.keys(fetchedItems).length; i++) {
+			let item = fetchedItems[Object.keys(fetchedItems)[i]]
 			this.db.put('items', item.full_id, item)
-			this.cache = this.cache || {}
-			this.cache[item.id] = item
-		})
+			this.cache[item.chain] = this.cache[item.chain] || {}
+			this.cache[item.chain][item.id] = item
+		}
 		this.anchorCache[chain] = lastanchor
 	}
 }
@@ -186,14 +185,14 @@ function minIndex (obj) {
 	let min = Infinity
 	let minKey = Object.keys(obj)[0]
 	for (var i = 0; i < keys.length; i++) {
-		let index = (obj[keys[i]] && obj[keys[i]].index) || -Infinity
+		let index = (obj[keys[i]] && obj[keys[i]].index) || Infinity
 		if (index < min) {
 			min = index
 			minKey = keys[i]
 		}
 	}
 
-	return obj[keys[minKey]]
+	return obj[minKey]
 }
 
 function maxIndex (obj) {
