@@ -4,18 +4,17 @@ const ChainMaxSize = 50
 //
 
 class Chain {
-	constructor (DB, schema, inmem) {
+	constructor (db, schema, inmem) {
 		this.schema = schema + '_chain'
 		this.dead = false
-		this.db = new DB(this.schema, inmem)
+		this.db = db
 		this.anchorCache = {}
 		this.cache = {} // note: cache must be continuously from start
 
-		this.initialized = false
+		this.init()
 	}
 
 	init () {
-		if (this.initialized) return
 		console.time('CHAIN' + this.schema)
 		let inmemItemM = {}
 
@@ -44,7 +43,6 @@ class Chain {
 		})
 
 		this.cache = inmemItemM
-		this.initialized = true
 		console.timeEnd('CHAIN' + this.schema)
 	}
 
@@ -56,7 +54,6 @@ class Chain {
 		this.cache = {}
 		this.anchorCache = {}
 		this.db = undefined
-		this.initialized = false
 	}
 
 	// item: {id, index, value}
