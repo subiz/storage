@@ -4,7 +4,7 @@ import KV from './kv.js'
 
 // parent {api, realtime, insync, pubsub}
 // like kv store, but support match and pubsub
-function NewObjectStore (realtime, pubsub, name, matcher, topics) {
+export default function NewObjectStore (realtime, pubsub, name, matcher, topics) {
 	let kv = new KV(config.db_prefix + name)
 	kv.init()
 
@@ -100,5 +100,3 @@ function NewObjectStore (realtime, pubsub, name, matcher, topics) {
 
 	return me
 }
-
-export default NewObjectStore

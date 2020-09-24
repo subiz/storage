@@ -1,6 +1,6 @@
 let KvMaxSize = 500
 // A key-value database with a cache layer
-module.exports = class {
+export default class {
 	constructor (db, schema) {
 		this.name = schema
 		schema += '_kv'

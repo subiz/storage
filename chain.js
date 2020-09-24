@@ -3,7 +3,7 @@ const ChainMaxSize = 50
 // index must be number and index must be positive
 //
 
-class Chain {
+export default class Chain {
 	constructor (db, schema, inmem) {
 		this.schema = schema + '_chain'
 		this.dead = false
@@ -252,5 +252,3 @@ function orderBy (a, k, d) {
 	})
 	return clone
 }
-
-module.exports = Chain

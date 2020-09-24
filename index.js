@@ -1,6 +1,6 @@
-var kv = require('./kv.js')
-var chain = require('./chain.js')
-var inmem_localstorage = require('./inmem_localstorage.js')
-var lsdb = require('./lsdb.js')
+var kv = require('./kv.js').default
+var chain = require('./chain.js').default
+var inmem_localstorage = require('./inmem_localstorage.js').default
+var lsdb = require('./lsdb.js').default
 
-module.exports = { kv, lsdb, chain, inmem_localstorage }
+export default { kv, lsdb, chain, inmem_localstorage }

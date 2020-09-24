@@ -37,4 +37,4 @@ localStorageMemory.clear = function () {
 	localStorageMemory.length = 0
 }
 
-module.exports = localStorageMemory
+export default localStorageMemory
