@@ -1,4 +1,4 @@
-let memlocalStorage = require('./inmem_localstorage.js')
+let memlocalStorage = require('./inmem_localstorage.js').default
 let requestIdleCallback = window.requestIdleCallback || (cb => cb())
 
 const LIMIT = 80
