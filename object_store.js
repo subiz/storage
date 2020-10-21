@@ -1,11 +1,10 @@
 const flow = require('@subiz/flow')
-const config = require('@sb/config')
 import KV from './kv.js'
 
 // parent {api, realtime, insync, pubsub}
 // like kv store, but support match and pubsub
-export default function NewObjectStore (realtime, pubsub, name, matcher, topics) {
-	let kv = new KV(config.db_prefix + name)
+export default function NewObjectStore (db_prefix, realtime, pubsub, name, matcher, topics) {
+	let kv = new KV(db_prefix + name)
 	kv.init()
 
 	// expires time in ms

@@ -1,5 +1,5 @@
 var lo = require('lodash')
-import store from '@sb/store'
+import store from './chain.js'
 
 let testcase = {
 	simple: async function () {
