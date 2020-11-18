@@ -1,4 +1,4 @@
-// this file implements localstorage in membory
+// this file implements localstorage in memory
 var localStorageMemory = {}
 var cache = {}
 
@@ -10,21 +10,15 @@ localStorageMemory.getItem = function (key) {
 }
 
 localStorageMemory.setItem = function (key, value) {
-	if (typeof value === 'undefined') {
-		localStorageMemory.removeItem(key)
-	} else {
-		if (!Object.prototype.hasOwnProperty.call(cache, key)) {
-			localStorageMemory.length++
-		}
-
-		cache[key] = '' + value
-	}
+	if (typeof value === 'undefined') localStorageMemory.removeItem(key)
+	else cache[key] = '' + value
+	localStorageMemory.length = Object.keys(cache).length
 }
 
 localStorageMemory.removeItem = function (key) {
 	if (Object.prototype.hasOwnProperty.call(cache, key)) {
 		delete cache[key]
-		localStorageMemory.length--
+		localStorageMemory.length = Object.keys(cache).length
 	}
 }
 

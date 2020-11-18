@@ -41,11 +41,14 @@ export default class {
 
 	// clear removes all item inside the table
 	clear (table) {
+		let matchkeys = []
 		for (var i = 0; i < this.localStorage.length; i++) {
 			let key = this.localStorage.key(i)
 			if (!key.startsWith(this.schema + '#' + table + '#')) continue
-			this.localStorage.removeItem(key)
+			matchkeys.push(key)
 		}
+
+		for (var i = 0; i < matchkeys.length; i++) this.localStorage.removeItem(matchkeys[i])
 		this.allkeys = {}
 	}
 
