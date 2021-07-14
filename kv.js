@@ -1,5 +1,7 @@
 let KvMaxSize = 500
 // A key-value database with a cache layer
+
+// db: {all, removes, put, clear}
 export default class {
 	constructor (db, schema) {
 		this.name = schema
@@ -16,7 +18,7 @@ export default class {
 		if (this.dead) return
 		let inmemItemM = {}
 		let allitems = this.db.all('items')
-		allitems.forEach(function(item) {
+		allitems.forEach(function (item) {
 			inmemItemM[item.key] = item.value
 		})
 		this.cache = inmemItemM
@@ -26,9 +28,8 @@ export default class {
 		if (this.initialized) return
 		let inmemItemM = {}
 
-		console.time('KV' + this.name)
 		let allitems = this.db.all('items')
-		allitems.forEach(function(item) {
+		allitems.forEach(function (item) {
 			inmemItemM[item.key] = item.value
 		})
 		this.cache = inmemItemM
@@ -49,13 +50,10 @@ export default class {
 				delete this.cache[key]
 				removekeys.push(key)
 			}
-
-			this.db.removes('items', [removekeys])
-
+			this.db.removes('items', removekeys)
 		}
 
 		this.initialized = true
-		console.timeEnd('KV' + this.name)
 	}
 
 	all () {
@@ -75,12 +73,31 @@ export default class {
 	// put({id: '1', name: 'thanh'}, 'id')
 	// put([{id: '1', name: 'thanh'},{id: '2', name: 'van'}], 'id')
 	put (key, value) {
-		if (!key) return
-		if (this.dead) return []
+		if (!key) return []
+ 		if (this.dead) return []
 		if (!this.initialized) throw new Error('uninitialized')
+
+		if (typeof key === 'string') {
+			this.cache[key] = value
+			this.db.put('items', key, { key, value })
+			return value
+		}
+
 		// if multiple key
-		this.cache[key] = value
-		this.db.put('items', key, { key, value })
+		var objs = []
+		let items = []
+		if (!Array.isArray(key)) objs = [key]
+		else objs = key
+
+		var path = value || 'id'
+		objs.forEach(obj => {
+			let key = obj[path]
+			this.cache[key] = obj
+			items.push({ key: key, value: obj })
+		})
+
+		items.forEach(item => this.db.put('items', item.key, { key: item.key, value: item.value }))
+		return objs
 	}
 
 	// delete an record in a schema

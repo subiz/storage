@@ -18,7 +18,7 @@ export default class Chain {
 		let inmemItemM = {}
 
 		let allitems = this.db.all('items')
-		allitems.map(item => {
+		allitems.map((item) => {
 			inmemItemM[item.chain] = inmemItemM[item.chain] || {}
 			inmemItemM[item.chain][item.id] = {
 				id: item.id,
@@ -97,7 +97,7 @@ export default class Chain {
 
 		if (apiItems.length === 0) return { end: true }
 
-		apiItems.forEach(item => {
+		apiItems.forEach((item) => {
 			item.chain = chain
 			item.full_id = chain + ':' + item.id
 			inmemItemM[item.id] = item
@@ -136,7 +136,7 @@ export default class Chain {
 			let [newItems, newanchor, error] = await api(chain, lastanchor, 50)
 			if (error) return
 			if (this.dead) return
-			newItems.map(item => {
+			newItems.map((item) => {
 				fetchedItems[item.id] = Object.assign({}, item, { chain, full_id: chain + ':' + item.id })
 			})
 			if (newItems.length === 0 || newanchor === lastanchor) break // out of item
@@ -148,7 +148,7 @@ export default class Chain {
 
 				let inmemItemM = this.cache[chain] || {}
 				let removeids = []
-				map(inmemItemM, item => {
+				map(inmemItemM, (item) => {
 					if (item.chain !== chain) return
 					removeids.push(item.full_id)
 				})
@@ -244,7 +244,7 @@ function size (o) {
 
 function orderBy (a, k, d) {
 	var clone = []
-	map(a, v => clone.push(v))
+	map(a, (v) => clone.push(v))
 	clone.sort((i, j) => {
 		if (i[k] === j[k]) return 0
 		var r = i[k] < j[k] ? -1 : 1

@@ -18,10 +18,10 @@ export default function NewObjectStore (db_prefix, realtime, pubsub, name, match
 		let ret = kv.put(key, value)
 		if (!Array.isArray(ret)) ret = [ret]
 		let itemM = {}
-		lo.map(ret, item => {
+		ret.forEach(item => {
 			if (item && item.id) itemM[item.id] = item
 		})
-		if (lo.size(itemM) === 0) return
+		if (Object.keys(itemM).length === 0) return
 		pubsub.publish(name, itemM)
 	}
 
@@ -44,17 +44,21 @@ export default function NewObjectStore (db_prefix, realtime, pubsub, name, match
 		if (!keys) return {}
 		if (typeof keys === 'string') keys = [keys]
 		if (!Array.isArray(keys)) throw new Error('keys must be array')
-		let unsyncids = lo.filter(keys, k => !!k)
+		let unsyncids = keys.filter(k => !!k)
 		if (!force) unsyncids = unsyncids.filter(k => isExpired(k))
 
 		await Promise.all(unsyncids.map(id => fetchQueue.push(id)))
-		return lo.map(keys, k => kv.match(k))
+		return keys.map(k => kv.match(k))
 	}
 
 	let fetchQueue = new flow.batch(100, 500, async ids => {
 		let { error: suberr } = await realtime.subscribe(topics)
 
-		ids = lo.uniq(ids)
+		// make ids unique
+		var idM = {}
+		ids.forEach(id => (idM[id] = true))
+		ids = Object.keys(idM)
+
 		// filter items that must be fetched
 		ids = ids.filter((id, i) => {
 			if (!id) return false
@@ -93,9 +97,8 @@ export default function NewObjectStore (db_prefix, realtime, pubsub, name, match
 			})
 		}
 
-		kv.put(lo.map(itemM))
+		kv.put(Object.values(itemM))
 		pubsub.publish(name, itemM)
 	})
-
 	return me
 }
